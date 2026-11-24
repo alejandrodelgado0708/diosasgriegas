@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  administrador
+  vendedor
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  username     String   @unique
+  passwordHash String
+  role         Role     @default(vendedor)
+  hourlyRate   Decimal  @default(0) @db.Decimal(12, 2)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  punches      Punch[]
+  sales        DailySale[]
+}
+
+model Punch {
+  id        String    @id @default(cuid())
+  userId    String
+  inAt      DateTime  @default(now())
+  outAt     DateTime?
+  user      User      @relation(fields: [userId], references: [id])
+  @@index([userId, inAt])
+}
+
+model DailySale {
+  id        String   @id @default(cuid())
+  userId    String
+  date      String
+  count     Int
+  user      User     @relation(fields: [userId], references: [id])
+  @@unique([userId, date])
+  @@index([date])
+}
+
+model Setting {
+  id        Int      @id @default(1)
+  shopLat   Float?
+  shopLng   Float?
+  radius    Int      @default(150)
+  updatedAt DateTime @updatedAt
+}
+
+model Shop {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String   @unique
+  latitude  Float
+  longitude Float
+  radius    Int      @default(150)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

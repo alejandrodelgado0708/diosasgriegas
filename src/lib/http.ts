@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+export function error(message:string,status=400) { return NextResponse.json({error:message},{status}); }
+export function distanceMeters(a:number,b:number,c:number,d:number) { const rad=(n:number)=>n*Math.PI/180, da=rad(c-a), db=rad(d-b), h=Math.sin(da/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(db/2)**2; return 6371000*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h)); }
+export function isAdmin(user:{role:string}) { return user.role === "administrador"; }

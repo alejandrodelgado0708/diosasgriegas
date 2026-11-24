@@ -1,0 +1,9 @@
+.brand{gap:10px;letter-spacing:0}
+.company-mark{width:138px;height:52px;flex:none;display:grid;place-items:center;background:#344f40;border-radius:9px;padding:5px 9px;box-shadow:0 3px 9px #263d3024}
+.company-mark img{display:block;width:100%;height:100%;object-fit:contain}
+.brand-context{color:#566b5b;font:800 9px/1.25 'DM Sans',sans-serif;letter-spacing:1.1px;white-space:nowrap}
+.brand-context small{display:block;color:#96988d;font-size:8px;letter-spacing:1px;margin-top:5px}
+.auth-brand{align-items:center;gap:12px;margin-bottom:38px}
+.auth-brand .company-mark{width:158px;height:59px;border-radius:10px}
+.auth-brand .brand-context{font-size:9px}
+@media(max-width:600px){.brand{gap:0}.company-mark{width:108px;height:42px;padding:5px 8px;border-radius:8px}.brand-context{display:none}.auth-brand{gap:11px}.auth-brand .company-mark{width:158px;height:59px}.auth-brand .brand-context{display:block}}
