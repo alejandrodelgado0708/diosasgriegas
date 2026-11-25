@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { db } from "@/lib/db";
-import { makeSession,passwordHash,sessionCookie,publicUser } from "@/lib/auth";
+import { makeSession,passwordHash,sessionCookie,publicUser,validPassword } from "@/lib/auth";
 import { error } from "@/lib/http";
 import { NextRequest,NextResponse } from "next/server";
 
@@ -14,7 +14,7 @@ export async function POST(req:NextRequest) {
   const localAddress=String(body?.localAddress||"").trim().replace(/\s+/g," ");
   const role=body?.role;
   const password=String(body?.password||"");
-  if(password.length<8)return error("La contraseña debe tener al menos 8 caracteres.");
+  if(!validPassword(password))return error("La contrase\u00f1a debe tener al menos 8 caracteres e incluir may\u00fascula y min\u00fascula.");
   if(role!=="administrador"&&role!=="vendedor"&&role!=="local")return error("Elegí Administrador, Vendedor o Local.");
   if(role!=="local"&&(firstName.length<2||firstName.length>80||lastName.length<2||lastName.length>100))return error("Ingres\u00e1 nombre y apellido completos.");
   if(role!=="local"&&!/^\+?[0-9\s().-]{8,24}$/.test(phone))return error("Ingres\u00e1 un tel\u00e9fono v\u00e1lido con c\u00f3digo de \u00e1rea.");
