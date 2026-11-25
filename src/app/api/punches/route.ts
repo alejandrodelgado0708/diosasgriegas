@@ -12,6 +12,6 @@ export async function GET(req:NextRequest) {
   const admin=isAdmin(user),requestedUser=req.nextUrl.searchParams.get("userId");
   const userId=admin?(requestedUser||undefined):user.id;
   if(requestedUser&&!admin)return error("Solo administración puede filtrar por vendedor.",403);
-  const punches=await db.punch.findMany({where:{...(userId?{userId}:{}),inAt:{gte:localMidnightUtc(bounds.start),lt:localMidnightUtc(bounds.end)}},include:{user:{select:{name:true,id:true}}},orderBy:{inAt:"desc"}});
-  return NextResponse.json({period:raw,...bounds,punches:punches.map(p=>({...p,userName:p.user.name}))});
+  const punches=await db.punch.findMany({where:{...(userId?{userId}:{}),inAt:{gte:localMidnightUtc(bounds.start),lt:localMidnightUtc(bounds.end)}},include:{user:{select:{name:true,id:true}},shop:{select:{name:true}}},orderBy:{inAt:"desc"}});
+  return NextResponse.json({period:raw,...bounds,punches:punches.map(p=>({...p,userName:p.user.name,shopName:p.shop?.name||""}))});
 }

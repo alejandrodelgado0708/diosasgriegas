@@ -40,8 +40,11 @@ model Punch {
   inAt      DateTime  @default(now())
   outAt     DateTime?
   autoClosed Boolean @default(false)
+  shopId    Int?
   user      User      @relation(fields: [userId], references: [id])
+  shop      Shop?     @relation(fields: [shopId], references: [id], onDelete: SetNull)
   @@index([userId, inAt])
+  @@index([shopId, inAt])
 }
 
 model DailySale {
@@ -69,7 +72,9 @@ model Shop {
   latitude  Float
   longitude Float
   radius    Int      @default(150)
+  scheduledExitTime String?
   active    Boolean  @default(true)
+  punches   Punch[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

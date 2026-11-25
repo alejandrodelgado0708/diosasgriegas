@@ -11,14 +11,14 @@ function scheduledUtc(date:string,time:string) {
   return new Date(`${date}T${time}:00-03:00`);
 }
 
-export async function closeDuePunches(now=new Date(),userId?:string) {
+export async function closeDuePunches(now=new Date(),userId?:string,shopId?:number) {
   const open=await db.punch.findMany({
-    where:{outAt:null,...(userId?{userId}:{}),user:{is:{role:"vendedor",scheduledExitTime:{not:null}}}},
-    include:{user:{select:{scheduledExitTime:true}}},
+    where:{outAt:null,...(userId?{userId}:{}),...(shopId?{shopId}:{}),user:{is:{role:"vendedor"}}},
+    include:{user:{select:{scheduledExitTime:true}},shop:{select:{scheduledExitTime:true}}},
   });
   let closed=0;
   for(const punch of open) {
-    const exitTime=punch.user.scheduledExitTime;
+    const exitTime=punch.shop?.scheduledExitTime||punch.user.scheduledExitTime;
     if(!exitTime||!/^([01]\d|2[0-3]):[0-5]\d$/.test(exitTime))continue;
     const scheduled=scheduledUtc(localDate(punch.inAt),exitTime);
     if(scheduled>now)continue;
