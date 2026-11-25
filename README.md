@@ -37,6 +37,7 @@ Abrí `http://localhost:3000`. Los roles son `administrador` y `vendedor`. Desde
    - `DATABASE_URL_POOLED`: URL pooler para las consultas serverless de la app. Si la integración Vercel/Prisma la ofrece, la app la usa automáticamente; si no, usa `DATABASE_URL`.
    - `SESSION_SECRET`: clave aleatoria larga. Generala con `node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"`.
    - `ADMIN_REGISTRATION_CODE`: clave privada para autorizar altas de cuentas administradoras. Configurala en Vercel y localmente; no guardes el valor real en Git.
+   - `CRON_SECRET`: clave aleatoria larga para autorizar el cierre automatico de fichajes programados.
 3. Aplicá las migraciones contra la base de producción con `npm run db:deploy`, usando las URLs de producción en el entorno de ese comando. No ejecutes `prisma migrate dev` contra producción.
 4. Volvé a desplegar. La app solo encontrará cuentas que existan en la base indicada por `DATABASE_URL`; crear la cuenta en otra base local no la copia a producción.
 

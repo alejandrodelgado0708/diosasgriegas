@@ -1,9 +1,11 @@
 import { currentUser,publicUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { closeDuePunches } from "@/lib/auto-checkout";
 import { payroll,weekBounds,localDate } from "@/lib/payroll";
 import { NextResponse } from "next/server";
 export async function GET() {
   const user=await currentUser();if(!user)return NextResponse.json({error:"Iniciá sesión."},{status:401});
+  await closeDuePunches();
   const thisWeek=weekBounds(), today=localDate(new Date()), todayStart=new Date(`${today}T03:00:00.000Z`),tomorrow=new Date(todayStart.getTime()+86400000);
   const [punches,open,settings,employees,sales,currentReport,dueReport]=await Promise.all([
     db.punch.findMany({where:user.role==="administrador"?{}:{userId:user.id},include:{user:{select:{name:true}}},orderBy:{inAt:"desc"},take:100}),

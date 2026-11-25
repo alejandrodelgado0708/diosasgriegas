@@ -1,0 +1,2 @@
+ALTER TABLE "User" ADD COLUMN "scheduledExitTime" TEXT;
+ALTER TABLE "Punch" ADD COLUMN "autoClosed" BOOLEAN NOT NULL DEFAULT false;

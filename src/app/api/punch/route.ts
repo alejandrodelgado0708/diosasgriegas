@@ -1,5 +1,6 @@
 import { currentUser } from "@/lib/auth";
 import { registerPunchAtLocation,PunchError } from "@/lib/punch-service";
+import { closeDuePunches } from "@/lib/auto-checkout";
 import { error } from "@/lib/http";
 import { NextRequest,NextResponse } from "next/server";
 export async function POST(req:NextRequest) {
@@ -8,6 +9,8 @@ export async function POST(req:NextRequest) {
   const b=await req.json().catch(()=>null);
   if(!["in","out"].includes(b?.action))return error("Acción de fichaje inválida.");
   try {
+    const autoClosed=await closeDuePunches(new Date(),user.id);
+    if(b.action==="out"&&autoClosed)return NextResponse.json({ok:true,autoClosed:true});
     const result=await registerPunchAtLocation(user.id,b.action,b.lat,b.lng);
     return NextResponse.json({ok:true,...result},{status:201});
   } catch(e) {

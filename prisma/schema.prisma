@@ -27,6 +27,7 @@ model User {
   weeklySalary Decimal  @default(0) @db.Decimal(12, 2)
   weeklySalesGoal Int   @default(0)
   weeklyGoalReward Decimal @default(0) @db.Decimal(12, 2)
+  scheduledExitTime String?
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
   punches      Punch[]
@@ -38,6 +39,7 @@ model Punch {
   userId    String
   inAt      DateTime  @default(now())
   outAt     DateTime?
+  autoClosed Boolean @default(false)
   user      User      @relation(fields: [userId], references: [id])
   @@index([userId, inAt])
 }
