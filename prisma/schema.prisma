@@ -5,6 +5,7 @@ generator client {
 enum Role {
   administrador
   vendedor
+  local
 }
 
 datasource db {
@@ -23,6 +24,7 @@ model User {
   phone        String?
   passwordHash String
   role         Role     @default(vendedor)
+  localAddress String?
   hourlyRate   Decimal  @default(0) @db.Decimal(12, 2)
   weeklySalary Decimal  @default(0) @db.Decimal(12, 2)
   weeklySalesGoal Int   @default(0)
@@ -32,6 +34,7 @@ model User {
   createdAt    DateTime @default(now())
   punches      Punch[]
   sales        DailySale[]
+  localSales   StoreSale[]
 }
 
 model Punch {
@@ -55,6 +58,21 @@ model DailySale {
   user      User     @relation(fields: [userId], references: [id])
   @@unique([userId, date])
   @@index([date])
+}
+
+model StoreSale {
+  id            String   @id @default(cuid())
+  localUserId   String
+  saleDate      String
+  saleNumber    Int
+  price         Decimal  @db.Decimal(12, 2)
+  size          String
+  paymentMethod String
+  soldBy        String
+  soldAt        DateTime @default(now())
+  local         User     @relation(fields: [localUserId], references: [id], onDelete: Cascade)
+  @@unique([localUserId, saleDate, saleNumber])
+  @@index([localUserId, soldAt])
 }
 
 model Setting {

@@ -11,12 +11,14 @@ export async function POST(req:NextRequest) {
   const firstName=String(body?.firstName||"").trim().replace(/\s+/g," ");
   const lastName=String(body?.lastName||"").trim().replace(/\s+/g," ");
   const phone=String(body?.phone||"").trim();
+  const localAddress=String(body?.localAddress||"").trim().replace(/\s+/g," ");
   const role=body?.role;
   const password=String(body?.password||"");
   if(firstName.length<2||firstName.length>80||lastName.length<2||lastName.length>100)return error("Ingresá nombre y apellido completos.");
   if(!/^\+?[0-9\s().-]{8,24}$/.test(phone))return error("Ingresá un teléfono válido con código de área.");
   if(password.length<8)return error("La contraseña debe tener al menos 8 caracteres.");
-  if(role!=="administrador"&&role!=="vendedor")return error("Elegí Administrador o Vendedor.");
+  if(role!=="administrador"&&role!=="vendedor"&&role!=="local")return error("Elegí Administrador, Vendedor o Local.");
+  if(role==="local"&&(localAddress.length<5||localAddress.length>240))return error("Ingresá la dirección del local.");
 
   let username=String(body?.username||"").trim().toLowerCase();
   let email:string|null=null;
@@ -35,7 +37,7 @@ export async function POST(req:NextRequest) {
 
   const fullName=firstName+" "+lastName;
   try {
-    const user=await db.user.create({data:{name:fullName,firstName,lastName,phone,email,username,passwordHash:passwordHash(password),role}});
+    const user=await db.user.create({data:{name:fullName,firstName,lastName,phone,email,username,passwordHash:passwordHash(password),role,...(role==="local"?{localAddress}:{})}});
     const res=NextResponse.json({user:publicUser(user)},{status:201});
     res.cookies.set(sessionCookie(makeSession(user.id)));
     return res;
