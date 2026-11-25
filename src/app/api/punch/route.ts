@@ -8,9 +8,9 @@ export async function POST(req:NextRequest) {
   if(user.role!=="vendedor")return error("Solo los vendedores pueden fichar.",403);
   const b=await req.json().catch(()=>null);
   if(!["in","out"].includes(b?.action))return error("Acción de fichaje inválida.");
+  if(b.action==="out")return error("Las salidas manuales las registra administracion.",403);
   try {
-    const autoClosed=await closeDuePunches(new Date(),user.id);
-    if(b.action==="out"&&autoClosed)return NextResponse.json({ok:true,autoClosed:true});
+    await closeDuePunches(new Date(),user.id);
     const result=await registerPunchAtLocation(user.id,b.action,b.lat,b.lng,b.action==="in");
     return NextResponse.json({ok:true,...result},{status:201});
   } catch(e) {
