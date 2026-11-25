@@ -1,0 +1,32 @@
+import { db } from "@/lib/db";
+import { makeSession,passwordHash,sessionCookie,publicUser } from "@/lib/auth";
+import { error } from "@/lib/http";
+import { NextRequest,NextResponse } from "next/server";
+
+export async function POST(req:NextRequest) {
+  if(!process.env.DATABASE_URL)return error("Falta configurar DATABASE_URL en el servidor.",503);
+  if(!process.env.SESSION_SECRET)return error("Falta configurar SESSION_SECRET en el servidor.",503);
+  const body=await req.json().catch(()=>null);
+  const firstName=String(body?.firstName||"").trim().replace(/\s+/g," ");
+  const lastName=String(body?.lastName||"").trim().replace(/\s+/g," ");
+  const phone=String(body?.phone||"").trim();
+  const username=String(body?.username||"").trim().toLowerCase();
+  const password=String(body?.password||"");
+  const role=body?.role;
+  if(firstName.length<2||firstName.length>80||lastName.length<2||lastName.length>100)return error("Ingresá tu nombre y apellido completos.");
+  if(!/^\+?[0-9\s().-]{8,24}$/.test(phone))return error("Ingresá un teléfono válido con código de área.");
+  if(!/^[a-z0-9._-]{3,40}$/.test(username))return error("El usuario debe tener entre 3 y 40 letras, números, puntos, guiones o guiones bajos.");
+  if(password.length<8)return error("La contraseña debe tener al menos 8 caracteres.");
+  if(role!=="administrador"&&role!=="vendedor")return error("Elegí Administrador o Vendedor.");
+  if(role==="administrador"&&await db.user.count({where:{role:"administrador"}})>0)return error("Ya existe una cuenta administradora. Pedile a administración que te habilite una cuenta.",403);
+  const fullName=`${firstName} ${lastName}`;
+  try {
+    const user=await db.user.create({data:{name:fullName,firstName,lastName,phone,username,passwordHash:passwordHash(password),role}});
+    const res=NextResponse.json({user:publicUser(user)},{status:201});
+    res.cookies.set(sessionCookie(makeSession(user.id)));
+    return res;
+  } catch(e:any) {
+    if(e?.code==="P2002")return error("Ese nombre de usuario ya está registrado.",409);
+    throw e;
+  }
+}
