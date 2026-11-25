@@ -11,7 +11,7 @@ export async function POST(req:NextRequest) {
   try {
     const autoClosed=await closeDuePunches(new Date(),user.id);
     if(b.action==="out"&&autoClosed)return NextResponse.json({ok:true,autoClosed:true});
-    const result=await registerPunchAtLocation(user.id,b.action,b.lat,b.lng);
+    const result=await registerPunchAtLocation(user.id,b.action,b.lat,b.lng,b.action==="in");
     return NextResponse.json({ok:true,...result},{status:201});
   } catch(e) {
     if(e instanceof PunchError)return error(e.message,e.status);

@@ -2,3 +2,5 @@
 @media(max-width:600px){.punches-panel .card-heading{align-items:stretch}.punch-filters{flex-direction:column;align-items:stretch}.period-tabs{width:100%}.period-tabs button{flex:1;padding:8px 5px}.punch-filters select{width:100%}.punch-range{font-size:11px}.seller-terms{padding-top:8px}}
 
 .punch-auto-tag{display:inline-block;margin-left:7px;padding:3px 6px;border-radius:6px;background:#eaf2eb;color:#527355;font-size:9px;font-weight:600}
+
+.employee-grid.employee-grid-single{grid-template-columns:minmax(0,1fr)}
