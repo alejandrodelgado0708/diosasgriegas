@@ -13,7 +13,7 @@ async function api(url:string,options?:RequestInit){const r=await fetch(url,{...
 async function testArrival(){
  const result=await api("/api/punch/test",{method:"POST",body:JSON.stringify({})});
  const message="Fichaje de entrada registrado (prueba de WhatsApp).";
- window.location.assign(`https://wa.me/5491136417717?text=${encodeURIComponent(message)}`);
+ window.location.assign(`https://wa.me/5491135118731?text=${encodeURIComponent(message)}`);
 }
 export default function ControlApp(){
  const [dashboard,setDashboard]=useState<Dashboard|null>(null),[setup,setSetup]=useState(false),[loading,setLoading]=useState(true),[errorMsg,setErrorMsg]=useState(""),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
