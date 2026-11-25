@@ -24,8 +24,10 @@ export async function registerPunchAtLocation(userId:string,action:"in"|"out",la
   if(action==="in"&&open)throw new PunchError("Ya tenés una entrada abierta.",409);
   if(action==="out"&&!open)throw new PunchError("No hay una entrada abierta.",409);
 
+  const userSchedule=action==="in"?await db.user.findUnique({where:{id:userId},select:{scheduledStartTime:true}}):null;
+  const shopSchedule=action==="in"&&assignedShopId?await db.shop.findUnique({where:{id:assignedShopId},select:{scheduledStartTime:true}}):null;
   const punch=action==="in"
-    ?await db.punch.create({data:{userId,shopId:assignedShopId}})
+    ?await db.punch.create({data:{userId,shopId:assignedShopId,scheduledStartTime:userSchedule?.scheduledStartTime||shopSchedule?.scheduledStartTime||null}})
     :await db.punch.update({where:{id:open!.id},data:{outAt:new Date()}});
   return {punch,shop:nearest?.shop??null,distance:nearest?Math.round(nearest.distance):null};
 }

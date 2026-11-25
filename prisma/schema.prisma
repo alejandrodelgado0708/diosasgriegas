@@ -29,6 +29,7 @@ model User {
   weeklySalary Decimal  @default(0) @db.Decimal(12, 2)
   weeklySalesGoal Int   @default(0)
   weeklyGoalReward Decimal @default(0) @db.Decimal(12, 2)
+  scheduledStartTime String?
   scheduledExitTime String?
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
@@ -44,6 +45,7 @@ model Punch {
   outAt     DateTime?
   autoClosed Boolean @default(false)
   shopId    Int?
+  scheduledStartTime String?
   user      User      @relation(fields: [userId], references: [id])
   shop      Shop?     @relation(fields: [shopId], references: [id], onDelete: SetNull)
   @@index([userId, inAt])
@@ -91,6 +93,7 @@ model Shop {
   latitude  Float
   longitude Float
   radius    Int      @default(150)
+  scheduledStartTime String?
   scheduledExitTime String?
   active    Boolean  @default(true)
   punches   Punch[]
