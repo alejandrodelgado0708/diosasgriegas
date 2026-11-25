@@ -65,6 +65,7 @@ model StoreSale {
   localUserId   String
   saleDate      String
   saleNumber    Int
+  productDetail String
   price         Decimal  @db.Decimal(12, 2)
   size          String
   paymentMethod String
