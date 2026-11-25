@@ -4,6 +4,7 @@ import { distanceMeters,error } from "@/lib/http";
 import { NextRequest,NextResponse } from "next/server";
 export async function POST(req:NextRequest) {
   const user=await currentUser();if(!user)return error("Iniciá sesión.",401);
+  if(user.role!=="vendedor")return error("Solo los vendedores pueden fichar.",403);
   const b=await req.json().catch(()=>null);if(!["in","out"].includes(b?.action)||!Number.isFinite(b.lat)||!Number.isFinite(b.lng)||Math.abs(b.lat)>90||Math.abs(b.lng)>180)return error("Necesitamos una ubicación válida para registrar la asistencia.");
   const open=await db.punch.findFirst({where:{userId:user.id,outAt:null},orderBy:{inAt:"desc"}});
   if(b.action==="in"&&open)return error("Ya tenés una entrada abierta.",409);if(b.action==="out"&&!open)return error("No hay una entrada abierta.",409);
