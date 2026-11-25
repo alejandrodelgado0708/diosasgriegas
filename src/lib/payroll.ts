@@ -16,7 +16,7 @@ export async function payroll(startInput?:string) {
   const employees=await db.user.findMany({where:{role:"vendedor",active:true},orderBy:{name:"asc"},include:{punches:{where:{inAt:{lt:to},OR:[{outAt:null},{outAt:{gt:from}}]}},sales:{where:{date:{gte:start,lt:end}}}}});
   return {start,end:new Date(new Date(`${end}T12:00:00Z`).getTime()-86400000).toISOString().slice(0,10),employees:employees.map(u=>{
     const hours=u.punches.reduce((sum,p)=>p.outAt?sum+Math.max(0,Math.min(p.outAt.getTime(),to.getTime())-Math.max(p.inAt.getTime(),from.getTime()))/3600000:sum,0);
-    const pieces=u.sales.reduce((sum,s)=>sum+s.count,0), commission=u.sales.reduce((sum,s)=>sum+Math.max(0,s.count-14)*500,0), wages=Math.round(hours*Number(u.hourlyRate));
-    return {id:u.id,name:u.name,hours:Number(hours.toFixed(2)),hourlyRate:Number(u.hourlyRate),wages,pieces,commission,total:wages+commission};
+    const pieces=u.sales.reduce((sum,s)=>sum+s.count,0), commission=u.sales.reduce((sum,s)=>sum+Math.max(0,s.count-14)*500,0), hourlyWages=Math.round(hours*Number(u.hourlyRate)), fixedSalary=Number(u.weeklySalary), goalReward=u.weeklySalesGoal>0&&pieces>=u.weeklySalesGoal?Number(u.weeklyGoalReward):0;
+    return {id:u.id,name:u.name,hours:Number(hours.toFixed(2)),hourlyRate:Number(u.hourlyRate),hourlyWages,fixedSalary,pieces,commission,weeklySalesGoal:u.weeklySalesGoal,weeklyGoalReward:Number(u.weeklyGoalReward),goalReward,total:hourlyWages+fixedSalary+commission+goalReward};
   })};
 }

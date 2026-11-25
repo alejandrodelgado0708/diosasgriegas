@@ -14,7 +14,7 @@ export async function GET() {
     payroll(),
     payroll(thisWeek.start)
   ]);
-  const ownToday=user.role==="vendedor"?await db.punch.findMany({where:{userId:user.id,inAt:{gte:todayStart,lt:tomorrow}},orderBy:{inAt:"desc"}}):undefined;
+  const ownToday=await db.punch.findMany({where:{userId:user.id,inAt:{gte:todayStart,lt:tomorrow}},orderBy:{inAt:"desc"}});
   const filterReport=(report:Awaited<ReturnType<typeof payroll>>)=>user.role==="administrador"?report:{...report,employees:report.employees.filter(e=>e.id===user.id)};
   return NextResponse.json({user:publicUser(user),shops:settings,employees:employees?.map(publicUser),punches:punches.map(p=>({...p,userName:p.user.name})),open,ownToday,sales:sales?.map(s=>({...s,userName:s.user.name})),currentReport:filterReport(currentReport),dueReport:filterReport(dueReport)});
 }

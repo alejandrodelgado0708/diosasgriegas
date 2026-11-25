@@ -20,6 +20,9 @@ model User {
   passwordHash String
   role         Role     @default(vendedor)
   hourlyRate   Decimal  @default(0) @db.Decimal(12, 2)
+  weeklySalary Decimal  @default(0) @db.Decimal(12, 2)
+  weeklySalesGoal Int   @default(0)
+  weeklyGoalReward Decimal @default(0) @db.Decimal(12, 2)
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
   punches      Punch[]
