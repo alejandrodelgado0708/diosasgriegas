@@ -1,0 +1,1 @@
+ALTER TABLE "StoreSale" ALTER COLUMN "soldBy" DROP NOT NULL;
