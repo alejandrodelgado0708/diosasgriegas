@@ -14,10 +14,10 @@ export async function POST(req:NextRequest) {
   const localAddress=String(body?.localAddress||"").trim().replace(/\s+/g," ");
   const role=body?.role;
   const password=String(body?.password||"");
-  if(firstName.length<2||firstName.length>80||lastName.length<2||lastName.length>100)return error("Ingresá nombre y apellido completos.");
-  if(!/^\+?[0-9\s().-]{8,24}$/.test(phone))return error("Ingresá un teléfono válido con código de área.");
   if(password.length<8)return error("La contraseña debe tener al menos 8 caracteres.");
   if(role!=="administrador"&&role!=="vendedor"&&role!=="local")return error("Elegí Administrador, Vendedor o Local.");
+  if(role!=="local"&&(firstName.length<2||firstName.length>80||lastName.length<2||lastName.length>100))return error("Ingres\u00e1 nombre y apellido completos.");
+  if(role!=="local"&&!/^\+?[0-9\s().-]{8,24}$/.test(phone))return error("Ingres\u00e1 un tel\u00e9fono v\u00e1lido con c\u00f3digo de \u00e1rea.");
   if(role==="local"&&(localAddress.length<5||localAddress.length>240))return error("Ingresá la dirección del local.");
 
   let username=String(body?.username||"").trim().toLowerCase();
@@ -35,9 +35,9 @@ export async function POST(req:NextRequest) {
     return error("El usuario debe tener entre 3 y 40 letras, números, puntos, guiones o guiones bajos.");
   }
 
-  const fullName=firstName+" "+lastName;
+  const fullName=role==="local"?localAddress:firstName+" "+lastName;
   try {
-    const user=await db.user.create({data:{name:fullName,firstName,lastName,phone,email,username,passwordHash:passwordHash(password),role,...(role==="local"?{localAddress}:{})}});
+    const user=await db.user.create({data:{name:fullName,firstName:role==="local"?null:firstName,lastName:role==="local"?null:lastName,phone:role==="local"?null:phone,email,username,passwordHash:passwordHash(password),role,...(role==="local"?{localAddress}:{})}});
     const res=NextResponse.json({user:publicUser(user)},{status:201});
     res.cookies.set(sessionCookie(makeSession(user.id)));
     return res;
