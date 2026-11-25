@@ -14,7 +14,7 @@ async function testArrival(){
  if(!navigator.geolocation)throw new Error("Este dispositivo no permite compartir ubicación.");
  const position=await new Promise<GeolocationPosition>((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,e=>reject(Error(e.code===1?"Necesitamos permiso de ubicación para probar.":"No pudimos obtener tu ubicación. Intentá de nuevo.")),{enableHighAccuracy:true,timeout:15000,maximumAge:0}));
  const result=await api("/api/punch/test",{method:"POST",body:JSON.stringify({lat:position.coords.latitude,lng:position.coords.longitude})});
- const message=`PRUEBA: Llegué al local ${result.shop.address}`;
+ const message=`Fichaje de entrada registrado en ${result.shop.address}`;
  window.location.assign(`https://wa.me/5491136417717?text=${encodeURIComponent(message)}`);
 }
 export default function ControlApp(){
