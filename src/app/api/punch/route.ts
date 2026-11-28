@@ -13,8 +13,9 @@ export async function POST(req:NextRequest) {
   try {
     await closeDuePunches(new Date(),user.id);
     const result=await registerPunchAtLocation(user.id,b.action,b.lat,b.lng,b.action==="in");
-    const time=new Intl.DateTimeFormat("es-AR",{dateStyle:"short",timeStyle:"short",timeZone:"America/Argentina/Buenos_Aires"}).format(result.punch.inAt);
-    const message=`Rodrigo registró su entrada a las ${time}.`;
+    const date=new Intl.DateTimeFormat("es-AR",{dateStyle:"short",timeZone:"America/Argentina/Buenos_Aires"}).format(result.punch.inAt);
+    const time=new Intl.DateTimeFormat("es-AR",{timeStyle:"short",timeZone:"America/Argentina/Buenos_Aires"}).format(result.punch.inAt);
+    const message=`Rodrigo registró su entrada el ${date} a las ${time}.`;
     const whatsappRecipients=getPunchWhatsAppRecipients(message);
     return NextResponse.json({ok:true,...result,whatsappRecipients},{status:201});
   } catch(cause) {
