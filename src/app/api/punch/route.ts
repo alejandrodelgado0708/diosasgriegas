@@ -1,7 +1,7 @@
 import { currentUser } from "@/lib/auth";
 import { registerPunchAtLocation,PunchError } from "@/lib/punch-service";
 import { closeDuePunches } from "@/lib/auto-checkout";
-import { getPunchWhatsAppRecipient } from "@/lib/whatsapp";
+import { getPunchWhatsAppRecipients } from "@/lib/whatsapp";
 import { error } from "@/lib/http";
 import { NextRequest,NextResponse } from "next/server";
 export async function POST(req:NextRequest) {
@@ -14,9 +14,9 @@ export async function POST(req:NextRequest) {
     await closeDuePunches(new Date(),user.id);
     const result=await registerPunchAtLocation(user.id,b.action,b.lat,b.lng,b.action==="in");
     const time=new Intl.DateTimeFormat("es-AR",{dateStyle:"short",timeStyle:"short",timeZone:"America/Argentina/Buenos_Aires"}).format(result.punch.inAt);
-    const message=`${user.name} registró su entrada a las ${time}.`;
-    const recipient=getPunchWhatsAppRecipient(message);
-    return NextResponse.json({ok:true,...result,whatsappRecipients:recipient?[recipient]:[]},{status:201});
+    const message=`Rodrigo registró su entrada a las ${time}.`;
+    const whatsappRecipients=getPunchWhatsAppRecipients(message);
+    return NextResponse.json({ok:true,...result,whatsappRecipients},{status:201});
   } catch(cause) {
     if(cause instanceof PunchError)return error(cause.message,cause.status);
     const detail=cause&&typeof cause==="object"?cause as {name?:unknown;message?:unknown;code?:unknown}:{};
