@@ -36,6 +36,8 @@ model User {
   punches      Punch[]
   sales        DailySale[]
   localSales   StoreSale[]
+  assignedShopId Int?
+  assignedShop Shop? @relation(fields: [assignedShopId], references: [id], onDelete: SetNull)
 }
 
 model Punch {
@@ -97,6 +99,7 @@ model Shop {
   scheduledExitTime String?
   active    Boolean  @default(true)
   punches   Punch[]
+  assignedEmployees User[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
