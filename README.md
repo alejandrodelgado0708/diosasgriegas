@@ -38,6 +38,9 @@ Abrí `http://localhost:3000`. Los roles son `administrador` y `vendedor`. Desde
    - `SESSION_SECRET`: clave aleatoria larga. Generala con `node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"`.
    - `ADMIN_REGISTRATION_CODE`: clave privada para autorizar altas de cuentas administradoras. Configurala en Vercel y localmente; no guardes el valor real en Git.
    - `CRON_SECRET`: clave aleatoria larga para autorizar el cierre automatico de fichajes programados.
+   - `EVOLUTION_API_URL`, `EVOLUTION_API_KEY` y `EVOLUTION_INSTANCE`: URL pública del servidor Evolution API, clave privada de la instancia y nombre de una instancia conectada a WhatsApp. No expongas la clave al navegador ni la guardes en Git.
+   - `WHATSAPP_PUNCH_PHONES`: exactamente dos números distintos, separados por coma y con código de país (solo dígitos, por ejemplo `54911...`). Evolution API tiene que poder enviar mensajes a ambos números.
+   - Evolution API se aloja por separado de esta aplicación; para usarla desde Vercel, el servidor debe tener una URL pública accesible y la instancia debe estar conectada a WhatsApp. Se puede autoalojar, pero el alojamiento del servidor puede tener costo.
 3. Aplicá las migraciones contra la base de producción con `npm run db:deploy`, usando las URLs de producción en el entorno de ese comando. No ejecutes `prisma migrate dev` contra producción.
 4. Volvé a desplegar. La app solo encontrará cuentas que existan en la base indicada por `DATABASE_URL`; crear la cuenta en otra base local no la copia a producción.
 
@@ -54,6 +57,7 @@ La aplicación es una PWA: no se descarga desde una tienda ni se instala como AP
 
 - La administradora define el punto del local y el radio permitido en metros. Puede usar la ubicación actual del dispositivo que está configurando o ingresar coordenadas.
 - Cada empleada ingresa desde el teléfono y marca entrada y salida. El servidor guarda las horas y no acepta marcas fuera del radio.
+- Al registrar una entrada, la aplicación envía en paralelo una notificación a los dos números configurados mediante Evolution API. Si el servicio no está configurado o falla, el fichaje se conserva igualmente; el resultado de la notificación se devuelve en la respuesta del endpoint.
 - El período de pago es de lunes a domingo. El resumen estima horas cerradas por la tarifa individual.
 - Cada vendedor puede tener un sueldo fijo semanal adicional a la tarifa por hora, además de una meta semanal de prendas y una recompensa configurable que se agrega al pago al cumplirla.
 - Vendedores y administración consultan fichajes con filtros semanal, quincenal o mensual. Administración puede filtrar por vendedor; cada vendedor solo ve sus propios fichajes.
