@@ -9,7 +9,32 @@ type Dashboard={user:User;shops:Shop[]|null;employees:User[]|null;locals:{id:str
 const money=(n:number)=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(n||0);
 const dateLocal=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/Argentina/Buenos_Aires",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const dateTime=(s:string)=>new Intl.DateTimeFormat("es-AR",{dateStyle:"medium",timeStyle:"short",timeZone:"America/Argentina/Buenos_Aires"}).format(new Date(s));
-async function api(url:string,options?:RequestInit){let r:Response;try{r=await fetch(url,{...options,headers:{"Content-Type":"application/json",...(options?.headers||{})}});}catch(cause){const rawDetail=cause instanceof Error?cause.message:"Error de red desconocido";const detail=/failed to fetch|load failed|networkerror/i.test(rawDetail)?"El navegador no pudo completar la solicitud. Puede deberse a una ca\u00edda del servidor, un problema de conexi\u00f3n o una configuraci\u00f3n de dominio.":rawDetail;console.error("No se pudo conectar con la API",{url,detail,cause});throw new Error(`No se pudo conectar con el servidor (${url}). Revis\u00e1 tu conexi\u00f3n e intent\u00e1 de nuevo. Detalle t\u00e9cnico: ${detail}.`);}const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`El servidor respondi\u00f3 con el error HTTP ${r.status} (${r.statusText||"sin descripci\u00f3n"}) en ${url}.`);return data;}
+async function api(url:string,options?:RequestInit){
+ const isPunchRequest=url.split("?")[0]==="/api/punch"&&(options?.method||"GET").toUpperCase()==="POST";
+ let r:Response;
+ try{r=await fetch(url,{...options,headers:{"Content-Type":"application/json",...(options?.headers||{})}});}
+ catch(cause){
+  const rawDetail=cause instanceof Error?cause.message:"Error de red desconocido";
+  const detail=/failed to fetch|load failed|networkerror/i.test(rawDetail)?"El navegador no pudo completar la solicitud. Puede deberse a una ca\u00edda del servidor, un problema de conexi\u00f3n o una configuraci\u00f3n de dominio.":rawDetail;
+  console.error("No se pudo conectar con la API",{url,detail,cause});
+  if(isPunchRequest)console.warn("[Fichaje] No se recibió respuesta de la API; el estado del envío de WhatsApp no está confirmado.");
+  throw new Error(`No se pudo conectar con el servidor (${url}). Revis\u00e1 tu conexi\u00f3n e intent\u00e1 de nuevo. Detalle t\u00e9cnico: ${detail}.`);
+ }
+ const data=await r.json().catch(()=>({}));
+ if(!r.ok){
+  if(isPunchRequest)console.error("[Fichaje] La API rechazó el registro; no hay confirmación del envío de WhatsApp.",{httpStatus:r.status});
+  throw new Error(data.error||`El servidor respondi\u00f3 con el error HTTP ${r.status} (${r.statusText||"sin descripci\u00f3n"}) en ${url}.`);
+ }
+ if(isPunchRequest){
+  const whatsapp=data?.whatsapp as {status?:string;sent?:number;total?:number}|undefined;
+  const result={status:whatsapp?.status||"unknown",sent:whatsapp?.sent??0,total:whatsapp?.total??0};
+  if(whatsapp?.status==="sent")console.info("[Fichaje] El proveedor de WhatsApp aceptó ambas solicitudes de envío; esto no confirma entrega ni lectura.",result);
+  else if(whatsapp?.status==="partial")console.warn("[Fichaje] El proveedor de WhatsApp aceptó solo parte de las solicitudes; esto no confirma entrega.",result);
+  else if(whatsapp?.status==="not_configured")console.warn("[Fichaje] WhatsApp no está configurado; no se enviaron mensajes.",result);
+  else console.error("[Fichaje] No se pudieron confirmar las solicitudes de envío de WhatsApp.",result);
+ }
+ return data;
+}
 
 export default function ControlApp(){
  const [dashboard,setDashboard]=useState<Dashboard|null>(null),[setup,setSetup]=useState(false),[loading,setLoading]=useState(true),[errorMsg,setErrorMsg]=useState(""),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
