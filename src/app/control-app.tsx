@@ -11,32 +11,24 @@ const dateLocal=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/Argentina
 const dateTime=(s:string)=>new Intl.DateTimeFormat("es-AR",{dateStyle:"medium",timeStyle:"short",timeZone:"America/Argentina/Buenos_Aires"}).format(new Date(s));
 async function api(url:string,options?:RequestInit){
  const isPunchRequest=url.split("?")[0]==="/api/punch"&&(options?.method||"GET").toUpperCase()==="POST";
- const whatsappWindow=isPunchRequest?window.open("about:blank","_blank"):null;
  let r:Response;
  try{r=await fetch(url,{...options,headers:{"Content-Type":"application/json",...(options?.headers||{})}});}
  catch(cause){
-  whatsappWindow?.close();
   const rawDetail=cause instanceof Error?cause.message:"Error de red desconocido";
   const detail=/failed to fetch|load failed|networkerror/i.test(rawDetail)?"El navegador no pudo completar la solicitud. Puede deberse a una ca\u00edda del servidor, un problema de conexi\u00f3n o una configuraci\u00f3n de dominio.":rawDetail;
   console.error("No se pudo conectar con la API",{url,detail,cause});
-  if(isPunchRequest)console.warn("[Fichaje] No se recibió respuesta de la API; no se pudo abrir el aviso de WhatsApp.");
+  if(isPunchRequest)console.warn("[Fichaje] No se recibió respuesta de la API; no se generaron los enlaces de WhatsApp.");
   throw new Error(`No se pudo conectar con el servidor (${url}). Revis\u00e1 tu conexi\u00f3n e intent\u00e1 de nuevo. Detalle t\u00e9cnico: ${detail}.`);
  }
  const data=await r.json().catch(()=>({}));
  if(!r.ok){
-  whatsappWindow?.close();
-  if(isPunchRequest)console.error("[Fichaje] La API rechazó el registro; no se abrió WhatsApp.",{httpStatus:r.status});
+  if(isPunchRequest)console.error("[Fichaje] La API rechazó el registro; no se generaron los enlaces de WhatsApp.",{httpStatus:r.status});
   throw new Error(data.error||`El servidor respondi\u00f3 con el error HTTP ${r.status} (${r.statusText||"sin descripci\u00f3n"}) en ${url}.`);
  }
  if(isPunchRequest){
-  const recipient=data?.whatsappRecipients?.[0] as {url?:string}|undefined;
-  if(recipient?.url){
-   if(whatsappWindow)whatsappWindow.location.href=recipient.url;
-   console.info("[Fichaje] Entrada registrada. Revisá y enviá manualmente el aviso abierto en WhatsApp.");
-  }else{
-   whatsappWindow?.close();
-   console.warn("[Fichaje] Entrada registrada, pero falta configurar un número para el aviso de WhatsApp.");
-  }
+  const recipients=data?.whatsappRecipients as {url?:string}[]|undefined;
+  if(recipients?.some(recipient=>recipient.url))console.info("[Fichaje] Entrada registrada. Los avisos de WhatsApp están disponibles en los botones para abrirlos manualmente.");
+  else console.warn("[Fichaje] Entrada registrada, pero falta configurar un número para el aviso de WhatsApp.");
  }
  return data;
 }
