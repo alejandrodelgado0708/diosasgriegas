@@ -56,10 +56,54 @@ function LocalDashboard({dashboard:d,act,busy}:{dashboard:Dashboard;act:(f:()=>P
  const nextSaleNumber=data?.nextSaleNumber||1,editingSale=data?.todaySales?.find((sale:any)=>sale.id===editingId);
  const save=async()=>{try{await api("/api/local-sales",{method:editingId?"PATCH":"POST",body:JSON.stringify({...form,price:Number(form.price),...(editingId?{id:editingId}:{})})});setForm({productDetail:"",price:"",size:"",paymentMethod:"Efectivo",soldBy:""});setEditingId(null);await load();}catch(e){await load();throw e;}};
  const editSale=(sale:any)=>{setEditingId(sale.id);setForm({productDetail:sale.productDetail,price:String(sale.price),size:sale.size,paymentMethod:sale.paymentMethod,soldBy:sale.soldBy||""});};
+ return (
+  <div className="local-dashboard">
+   <div className="employee-grid">
+    <section className="card">
+     <div className="card-heading">
+      <div>
+       <p className="eyebrow">CARGA DE HOY · {shortDate(dateLocal())}</p>
+       <h2>{editingId?`Editar venta #${data?.todaySales?.find((sale:any)=>sale.id===editingId)?.saleNumber??""}`:"Registrar venta"}</h2>
+       {editingId&&<button type="button" className="button button-outline small-button" onClick={()=>{setEditingId(null);setForm({productDetail:"",price:"",size:"",paymentMethod:"Efectivo",soldBy:""});}}>Cancelar edición</button>}
+       <p className="subheading">La fecha y hora se guardan automáticamente.</p>
+      </div>
+      <span className="status-chip status-working">Próxima #{data?.nextSaleNumber??"…"}</span>
+     </div>
+     <form className="form-stack compact" onSubmit={e=>{e.preventDefault();act(save,editingId?"Venta actualizada.":"Venta registrada.");}}>
+      <label>Producto / detalle<input required minLength={2} maxLength={300} value={form.productDetail} onChange={e=>setForm({...form,productDetail:e.target.value})} placeholder="Ej. Remera manga larga"/></label>
+      <label>Precio de detalle (ARS)<input required min="0" step="0.01" type="number" value={form.price} onChange={e=>setForm({...form,price:e.target.value})}/></label>
+      <label>Talle<input required maxLength={40} value={form.size} onChange={e=>setForm({...form,size:e.target.value})} placeholder="Ej. M, 38, único"/></label>
+      <label>Medio de pago<select value={form.paymentMethod} onChange={e=>setForm({...form,paymentMethod:e.target.value})}><option>Efectivo</option><option>Transferencia</option><option>Débito</option><option>Crédito</option><option>Otro</option></select></label>
+      {((editingSale?.saleNumber>=16||(!editingId&&nextSaleNumber>=16))&&Number(form.price)>16000)&&<>
+       <div className="commission-preview">Desde la venta 16, si supera $16.000, carga el responsable de la venta.</div>
+       <label>Responsable de esta venta<input required minLength={2} maxLength={100} value={form.soldBy} onChange={e=>setForm({...form,soldBy:e.target.value})} placeholder="Nombre de quien realizó la venta"/></label>
+      </>}
+      <button className="button button-primary" disabled={busy||(!editingId&&data?.nextSaleNumber==null)}>{editingId?"Guardar cambios":`Guardar venta #${data?.nextSaleNumber??"…"}`}</button>
+     </form>
+    </section>
+    <section className="card activity-card">
+     <div className="card-heading">
+      <div><p className="eyebrow">MOVIMIENTOS DEL DÍA</p><h2>Ventas de hoy</h2></div>
+      <span className="status-chip status-working">{data?.todaySales?.length||0} ventas</span>
+     </div>
+     <div className="table-wrap">
+      <table>
+       <thead><tr><th>N° VENTA</th><th>PRODUCTO</th><th>RESPONSABLE</th><th>TALLE</th><th>PAGO</th><th>IMPORTE</th><th>ACCIONES</th></tr></thead>
+       <tbody>
+        {!data?.todaySales?.length?<tr><td colSpan={7} className="empty-cell">Todavía no hay ventas cargadas hoy.</td></tr>:data.todaySales.map((sale:any)=><tr key={sale.id}><td>{sale.saleNumber}</td><td>{sale.productDetail}</td><td>{sale.soldBy||"—"}</td><td>{sale.size}</td><td>{sale.paymentMethod}</td><td>{money(sale.price)}</td><td><button type="button" className="button button-outline small-button" onClick={()=>editSale(sale)}>Editar</button></td></tr>)}
+       </tbody>
+      </table>
+     </div>
+    </section>
+   </div>
+  </div>
+ );
+ /*
  return <div className="local-dashboard"><div className="employee-grid"><section className="card"><div className="card-heading"><div><p className="eyebrow">CARGA DE HOY · {shortDate(dateLocal())}</p><h2>{editingId?`Editar venta #${data?.todaySales?.find((sale:any)=>sale.id===editingId)?.saleNumber??""}`:"Registrar venta"}</h2>{editingId&&<button type="button" className="button button-outline small-button" onClick={()=>{setEditingId(null);setForm({productDetail:"",price:"",size:"",paymentMethod:"Efectivo",soldBy:""});}}>Cancelar edici\u00f3n</button>}<p className="subheading">La fecha y hora se guardan automáticamente.</p></div><span className="status-chip status-working">Próxima #{data?.nextSaleNumber??"…"}</span></div><form className="form-stack compact" onSubmit={e=>{e.preventDefault();act(save,editingId?"Venta actualizada.":"Venta registrada.")}}><label>Producto / detalle<input required minLength={2} maxLength={300} value={form.productDetail} onChange={e=>setForm({...form,productDetail:e.target.value})} placeholder="Ej. Remera manga larga"/></label><label>Precio de detalle (ARS)<input required min="0" step="0.01" type="number" value={form.price} onChange={e=>setForm({...form,price:e.target.value})}/></label><label>Talle<input required maxLength={40} value={form.size} onChange={e=>setForm({...form,size:e.target.value})} placeholder="Ej. M, 38, único"/></label><label>Medio de pago<select value={form.paymentMethod} onChange={e=>setForm({...form,paymentMethod:e.target.value})}><option>Efectivo</option><option>Transferencia</option><option>Débito</option><option>Crédito</option><option>Otro</option></select></label>{((editingSale?.saleNumber>=16||(!editingId&&nextSaleNumber>=16))&&Number(form.price)>16000)&&<><div className="commission-preview">Desde la venta 16, si supera $16.000, carga el responsable de la venta.</div><label>Responsable de esta venta<input required minLength={2} maxLength={100} value={form.soldBy} onChange={e=>setForm({...form,soldBy:e.target.value})} placeholder="Nombre de quien realizó la venta"/></label></>}<button className="button button-primary" disabled={busy||(!editingId&&data?.nextSaleNumber==null)}>{editingId?"Guardar cambios":`Guardar venta #{data?.nextSaleNumber??"…"}</button></form></section><section className="card activity-card"><div className="card-heading"><div><p className="eyebrow">MOVIMIENTOS DEL DÍA</p><h2>Ventas de hoy</h2></div><span className="status-chip status-working">{data?.todaySales?.length||0} ventas</span></div><div className="table-wrap"><table><thead><tr><th>N° VENTA</th><th>PRODUCTO</th><th>RESPONSABLE</th><th>TALLE</th><th>PAGO</th><th>IMPORTE</th><th>ACCIONES</th></tr></thead><tbody>{!data?.todaySales?.length?<tr><td colSpan={7} className="empty-cell">Todavía no hay ventas cargadas hoy.</td></tr>:data.todaySales.map((sale:any)=><tr key={sale.id}><td>{sale.saleNumber}</td><td>{sale.productDetail}</td><td>{sale.soldBy||"—"}</td><td>{sale.size}</td><td>{sale.paymentMethod}</td><td>{money(sale.price)}</td><td><button type="button" className="button button-outline small-button" onClick={()=>editSale(sale)}>Editar</button></td></tr>)}</tbody></table></div></section></div></div>;
+ */
 }function LocalDirectory({locals,act,busy}:{locals:{id:string;name:string;localAddress:string|null}[];act:(f:()=>Promise<any>,m?:string)=>void;busy:boolean}) {
  const [selected,setSelected]=useState(""),[start,setStart]=useState(dateLocal()),[data,setData]=useState<any>(null),[error,setError]=useState(""),[page,setPage]=useState(1);
- useEffect(()=>{let cancelled=false;const load=async()=>{try{const result=await api(`/api/local-sales?${selected?`localUserId=${selected}&`:""}start=${start}`);if(!cancelled){setData(result);setError("");}}catch(e:any){if(!cancelled)setError(e.message);}};void load();const timer=window.setInterval(()=>{void load()},60_000);return()=>{cancelled=true;window.clearInterval(timer);};},[selected,start]);
+ useEffect(()=>{let cancelled=false;const load=async()=>{try{const params=new URLSearchParams({start});if(selected)params.set("localUserId",selected);const result=await api(`/api/local-sales?${params}`);if(!cancelled){setData(result);setError("");}}catch(e:any){if(!cancelled)setError(e.message);}};void load();const timer=window.setInterval(()=>{void load()},60_000);return()=>{cancelled=true;window.clearInterval(timer);};},[selected,start]);
  useEffect(()=>setPage(1),[selected,start]);
  const totals=(data?.sales||[]).reduce((acc:Record<string,number>,sale:any)=>({...acc,[sale.localUserId]:(acc[sale.localUserId]||0)+sale.price}),{});
  const pageSize=10,totalPages=Math.max(1,Math.ceil((data?.sales?.length||0)/pageSize)),visibleSales=(data?.sales||[]).slice((page-1)*pageSize,page*pageSize);
